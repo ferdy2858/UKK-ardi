@@ -15,15 +15,15 @@
         <aside class="w-64 bg-white shadow min-h-screen p-4">
             <h2 class="text-2xl font-bold mb-6">Tabungan Siswa</h2>
             <nav class="space-y-2">
-                <a href="{{ route('siswa.index') }}" class="block px-4 py-2 rounded hover:bg-gray-200">Dashboard</a>
-                {{-- <a href="{{ route('siswa.index') }}" class="block px-4 py-2 rounded hover:bg-gray-200">Data Siswa</a>
-                <a href="{{ route('transaksi.setoran') }}" class="block px-4 py-2 rounded hover:bg-gray-200">Setoran</a>
+                <a href="{{ route('siswa.index') }}" class="block px-4 py-2 rounded hover:bg-gray-200">Siswa</a>
+                <a href="{{ route('transaksi.index') }}" class="block px-4 py-2 rounded hover:bg-gray-200">Transaksi</a>
+                {{-- <!-- <a href="{{ route('transaksi.setoran') }}" class="block px-4 py-2 rounded hover:bg-gray-200">Setoran</a>
                 <a href="{{ route('transaksi.penarikan') }}" class="block px-4 py-2 rounded hover:bg-gray-200">Penarikan</a>
                 <a href="{{ route('laporan.index') }}" class="block px-4 py-2 rounded hover:bg-gray-200">Laporan</a> --}}
-                {{-- <form action="{{ route('logout') }}" method="POST">
+                <!-- {{-- <form action="{{ route('logout') }}" method="POST"> --}}
                     @csrf
                     <button class="w-full text-left px-4 py-2 rounded hover:bg-red-100 text-red-700">Logout</button>
-                </form> --}}
+                </form> --}} -->
             </nav>
         </aside>
 
