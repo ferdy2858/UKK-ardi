@@ -12,7 +12,7 @@ class TranksaksiController extends Controller
     public function index()
     {
         //
-        return view('transaksi'); // Assuming you have a view for listing transactions
+        return view('transaksi.index'); // Assuming you have a view for listing transactions
     }
 
     /**
