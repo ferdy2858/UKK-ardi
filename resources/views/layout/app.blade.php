@@ -15,7 +15,7 @@
         <aside class="w-64 bg-white shadow min-h-screen p-4">
             <h2 class="text-2xl font-bold mb-6">Tabungan Siswa</h2>
             <nav class="space-y-2">
-                {{-- <a href="{{ route('dashboard') }}" class="block px-4 py-2 rounded hover:bg-gray-200">Dashboard</a> --}}
+                <a href="{{ route('siswa.index') }}" class="block px-4 py-2 rounded hover:bg-gray-200">Dashboard</a>
                 {{-- <a href="{{ route('siswa.index') }}" class="block px-4 py-2 rounded hover:bg-gray-200">Data Siswa</a>
                 <a href="{{ route('transaksi.setoran') }}" class="block px-4 py-2 rounded hover:bg-gray-200">Setoran</a>
                 <a href="{{ route('transaksi.penarikan') }}" class="block px-4 py-2 rounded hover:bg-gray-200">Penarikan</a>
