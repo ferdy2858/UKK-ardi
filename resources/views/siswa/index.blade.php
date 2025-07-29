@@ -8,8 +8,14 @@
 
             <!-- Kanan: Search + Tombol -->
             <div class="flex items-center gap-2">
-                <input type="text" id="searchInput" placeholder="Cari nama atau NIS..."
-                    class="w-64 rounded border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm dark:bg-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <form action="{{ route('siswa.index') }}" method="GET" class="flex">
+                    <input type="text" id="searchInput" name="q" value="{{ request('q') }}" placeholder="Cari nama atau NIS..."
+                        class="rounded-l-md border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm dark:bg-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button type="submit"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-r-md text-sm transition">
+                        Cari
+                    </button>
+                </form>
 
                 <a href="{{ route('siswa.create') }}"
                     class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow transition text-sm">
@@ -65,6 +71,9 @@
                             @endforelse
                         </tbody>
                     </table>
+                    <div class="mt-4">
+                        {{ $siswas->appends(request()->query())->links() }}
+                    </div>
                 </div>
             </div>
         </div>

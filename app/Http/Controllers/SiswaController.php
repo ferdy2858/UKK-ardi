@@ -7,9 +7,17 @@ use Illuminate\Http\Request;
 
 class SiswaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $siswas = Siswa::all();
+        $query = Siswa::query();
+
+        if ($request->filled('q')) {
+            $query->where('nama', 'ILIKE', "%{$request->q}%")
+                ->orWhere('nis', 'ILIKE', "%{$request->q}%");
+        }
+
+        $siswas = $query->paginate(10)->appends($request->query()); // ✅ ini yang benar
+
         return view('siswa.index', compact('siswas'));
     }
 
