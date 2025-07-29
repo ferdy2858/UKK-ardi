@@ -8,11 +8,22 @@ use Illuminate\Http\Request;
 
 class TranksaksiController extends Controller
 {
-    public function index()
-    {
-        $transaksis = Transaksi::with('siswa')->latest()->get();
-        return view('transaksi.index', compact('transaksis'));
-    }
+    public function index(Request $request)
+{
+    $search = $request->input('search');
+
+    $transaksis = Transaksi::with('siswa')
+        ->when($search, function ($query, $search) {
+            $query->whereHas('siswa', function ($q) use ($search) {
+                $q->where('nama', 'like', '%' . $search . '%');
+            });
+        })
+        ->latest()
+        ->paginate(10)
+        ->withQueryString();
+
+    return view('transaksi.index', compact('transaksis', 'search'));
+}
 
     public function create()
     {
