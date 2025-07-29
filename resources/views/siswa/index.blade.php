@@ -1,13 +1,21 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
+        <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
+            <!-- Kiri: Judul -->
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                 {{ __('Data Siswa') }}
             </h2>
-            <a href="{{ route('siswa.create') }}"
-                class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow transition">
-                + Tambah Siswa
-            </a>
+
+            <!-- Kanan: Search + Tombol -->
+            <div class="flex items-center gap-2">
+                <input type="text" id="searchInput" placeholder="Cari nama atau NIS..."
+                    class="w-64 rounded border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm dark:bg-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+
+                <a href="{{ route('siswa.create') }}"
+                    class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow transition text-sm">
+                    + Tambah Siswa
+                </a>
+            </div>
         </div>
     </x-slot>
 
@@ -61,4 +69,15 @@
             </div>
         </div>
     </div>
+    <script>
+        document.getElementById('searchInput').addEventListener('input', function() {
+            const searchValue = this.value.toLowerCase();
+            const rows = document.querySelectorAll('tbody tr');
+
+            rows.forEach(row => {
+                const rowText = row.textContent.toLowerCase();
+                row.style.display = rowText.includes(searchValue) ? '' : 'none';
+            });
+        });
+    </script>
 </x-app-layout>
