@@ -2,64 +2,113 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Siswa;
+use App\Models\Transaksi;
 use Illuminate\Http\Request;
 
 class TranksaksiController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
-        return view('transaksi.index'); // Assuming you have a view for listing transactions
+        $transaksis = Transaksi::with('siswa')->latest()->get();
+        return view('transaksi.index', compact('transaksis'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        $siswas = Siswa::all();
+        return view('transaksi.create', compact('siswas'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'siswa_id' => 'required|exists:siswas,id',
+            'jenis' => 'required|in:setoran,penarikan',
+            'nominal' => 'required|integer|min:1',
+            'tanggal' => 'required|date',
+        ]);
+
+        $siswa = Siswa::findOrFail($request->siswa_id);
+
+        if ($request->jenis === 'penarikan' && $request->nominal > $siswa->saldo) {
+            return back()->with('error', 'Saldo tidak mencukupi untuk penarikan.');
+        }
+
+        // Update saldo siswa
+        if ($request->jenis === 'setoran') {
+            $siswa->saldo += $request->nominal;
+        } else {
+            $siswa->saldo -= $request->nominal;
+        }
+        $siswa->save();
+
+        // Simpan transaksi
+        Transaksi::create($request->only('siswa_id', 'jenis', 'nominal', 'tanggal'));
+
+        return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil ditambahkan.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function edit($id)
     {
-        //
+        $transaksi = Transaksi::findOrFail($id);
+        $siswas = Siswa::all();
+        return view('transaksi.edit', compact('transaksi', 'siswas'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
+    // public function update(Request $request, $id)
+    // {
+    //     $request->validate([
+    //         'siswa_id' => 'required|exists:siswas,id',
+    //         'jenis' => 'required|in:setoran,penarikan',
+    //         'nominal' => 'required|integer|min:1',
+    //         'tanggal' => 'required|date',
+    //     ]);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+    //     $transaksi = Transaksi::findOrFail($id);
+    //     $siswa = Siswa::findOrFail($transaksi->siswa_id);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    //     // Revert saldo lama
+    //     if ($transaksi->jenis === 'setoran') {
+    //         $siswa->saldo -= $transaksi->nominal;
+    //     } else {
+    //         $siswa->saldo += $transaksi->nominal;
+    //     }
+
+    //     // Cek jika saldo cukup untuk penarikan baru
+    //     if ($request->jenis === 'penarikan' && $request->nominal > $siswa->saldo) {
+    //         return back()->with('error', 'Saldo tidak mencukupi untuk penarikan.');
+    //     }
+
+    //     // Apply saldo baru
+    //     if ($request->jenis === 'setoran') {
+    //         $siswa->saldo += $request->nominal;
+    //     } else {
+    //         $siswa->saldo -= $request->nominal;
+    //     }
+
+    //     $siswa->save();
+
+    //     $transaksi->update($request->only('siswa_id', 'jenis', 'nominal', 'tanggal'));
+
+    //     return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil diperbarui.');
+    // }
+    
+    public function destroy($id)
     {
-        //
+        $transaksi = Transaksi::findOrFail($id);
+        $siswa = $transaksi->siswa;
+
+        // Revert saldo saat hapus
+        if ($transaksi->jenis === 'setoran') {
+            $siswa->saldo -= $transaksi->nominal;
+        } else {
+            $siswa->saldo += $transaksi->nominal;
+        }
+
+        $siswa->save();
+        $transaksi->delete();
+
+        return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil dihapus.');
     }
 }

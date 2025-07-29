@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('siswa_id')->constrained('siswas')->onDelete('cascade');
             $table->string('jenis'); // setoran / penarikan
-            $table->integer('nominal');
+            $table->integer('nominal'); 
             $table->date('tanggal');
             $table->timestamps();
         });
