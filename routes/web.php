@@ -23,4 +23,5 @@ Route::middleware('auth')->group(function () {
     Route::resource('laporan', LaporanController::class);
 });
 
+
 require __DIR__ . '/auth.php';

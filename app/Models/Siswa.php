@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -13,11 +14,16 @@ class Siswa extends Model
         'nama',
         'nis',
         'kelas',
-        'saldo', // tambahkan ini juga biar bisa diisi
+        'saldo',
+        'user_id', // tambahkan ini juga biar bisa diisi
     ];
 
     public function transaksis()
     {
         return $this->hasMany(Transaksi::class);
+    }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

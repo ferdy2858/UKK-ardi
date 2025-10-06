@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Siswa;
 use Illuminate\Http\Request;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class SiswaController extends Controller
 {
@@ -32,12 +35,34 @@ class SiswaController extends Controller
             'nama' => 'required|string',
             'nis' => 'required|unique:siswas',
             'kelas' => 'required|string',
+            'email' => 'required|email|unique:users,email', // ✅ tambahkan ini
+            'password' => 'required|min:4',
         ]);
 
-        Siswa::create($request->all());
+        // 1️⃣ Buat akun user dengan email dari input
+        $user = User::create([
+            'name' => $request->nama,
+            'email' => $request->email, // ✅ ambil dari form
+            'password' => Hash::make($request->password),
+        ]);
 
-        return redirect()->route('siswa.index')->with('success', 'Data siswa berhasil ditambahkan.');
+        // 2️⃣ Buat data siswa
+        $siswa = Siswa::create([
+            'nama' => $request->nama,
+            'nis' => $request->nis,
+            'kelas' => $request->kelas,
+            'saldo' => 0,
+            'user_id' => $user->id,
+        ]);
+
+        // 3️⃣ Berikan role "siswa"
+        $user->assignRole('siswa');
+
+        return redirect()->route('siswa.index')->with('success', 'Data siswa dan akun login berhasil dibuat.');
     }
+
+
+
 
     public function edit($id)
     {
