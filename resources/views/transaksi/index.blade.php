@@ -19,12 +19,11 @@
 
                 <a href="{{ route('transaksi.create') }}"
                     class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow transition text-sm">
-                    + Tambah Siswa
+                    + Tambah Transaksi
                 </a>
             </div>
         </div>
     </x-slot>
-
 
     <div class="py-6 flex justify-center">
         <div class="w-full max-w-6xl sm:px-6 lg:px-8">
@@ -55,13 +54,11 @@
                                     <td class="px-4 py-2">Rp{{ number_format($transaksi->nominal, 0, ',', '.') }}</td>
                                     <td class="px-4 py-2">{{ date('d-m-Y', strtotime($transaksi->tanggal)) }}</td>
                                     <td class="px-4 py-2 space-x-2">
-                                        {{-- <a href="{{ route('transaksi.edit', $transaksi->id) }}"
-                                            class="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded text-sm">Edit</a> --}}
                                         <form action="{{ route('transaksi.destroy', $transaksi->id) }}" method="POST"
-                                            class="inline-block">
+                                            class="inline-block delete-form">
                                             @csrf
                                             @method('DELETE')
-                                            <button onclick="return confirm('Yakin ingin menghapus transaksi ini?')"
+                                            <button type="submit"
                                                 class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm">
                                                 Hapus
                                             </button>
@@ -82,7 +79,12 @@
             </div>
         </div>
     </div>
+
+    <!-- SweetAlert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
+        // Search lokal
         document.getElementById('searchInput').addEventListener('input', function() {
             const searchValue = this.value.toLowerCase();
             const rows = document.querySelectorAll('tbody tr');
@@ -92,6 +94,51 @@
                 row.style.display = rowText.includes(searchValue) ? '' : 'none';
             });
         });
-    </script>
 
+        // SweetAlert konfirmasi hapus
+        document.querySelectorAll('.delete-form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Yakin?',
+                    text: "Data transaksi ini akan dihapus permanen!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Ya, hapus!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+
+        // SweetAlert toast notifikasi sukses/gagal
+        @if(session('success'))
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: '{{ session("success") }}',
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true,
+            });
+        @endif
+
+        @if(session('error'))
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'error',
+                title: '{{ session("error") }}',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+            });
+        @endif
+    </script>
 </x-app-layout>

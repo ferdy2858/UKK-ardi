@@ -3,6 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Siswa;
+use App\Models\Transaksi;
+use Carbon\Carbon;
+use DB;
 
 class LaporanController extends Controller
 {
@@ -11,8 +15,48 @@ class LaporanController extends Controller
      */
     public function index()
     {
-        //
-        return view('laporan.index');
+        $totalSaldo = Siswa::sum('saldo');
+        $totalSetoranBulanIni = Transaksi::where('jenis', 'setoran')
+            ->whereMonth('tanggal', Carbon::now()->month)
+            ->sum('nominal');
+        $totalPenarikanBulanIni = Transaksi::where('jenis', 'penarikan')
+            ->whereMonth('tanggal', Carbon::now()->month)
+            ->sum('nominal');
+        $jumlahSiswa = Siswa::count();
+
+        // Data grafik bulanan
+        $dataBulanan = Transaksi::select(
+            DB::raw('EXTRACT(MONTH FROM tanggal) as bulan'),
+            DB::raw("SUM(CASE WHEN jenis = 'setoran' THEN nominal ELSE 0 END) as total_setoran"),
+            DB::raw("SUM(CASE WHEN jenis = 'penarikan' THEN nominal ELSE 0 END) as total_penarikan")
+        )
+            ->groupBy('bulan')
+            ->orderBy('bulan')
+            ->get();
+
+        // Data tabel detail per siswa
+        $laporanSiswa = Siswa::select(
+            'nama',
+            DB::raw("(SELECT COALESCE(SUM(nominal),0) FROM transaksis WHERE siswa_id = siswas.id AND jenis='setoran') as total_setoran"),
+            DB::raw("(SELECT COALESCE(SUM(nominal),0) FROM transaksis WHERE siswa_id = siswas.id AND jenis='penarikan') as total_penarikan"),
+            DB::raw("(
+            (SELECT COALESCE(SUM(nominal),0) FROM transaksis WHERE siswa_id = siswas.id AND jenis='setoran')
+            - 
+            (SELECT COALESCE(SUM(nominal),0) FROM transaksis WHERE siswa_id = siswas.id AND jenis='penarikan')
+        ) as saldo_akhir")
+        )
+            ->orderByDesc('saldo_akhir')
+            ->get();
+
+
+        return view('laporan.index', compact(
+            'totalSaldo',
+            'totalSetoranBulanIni',
+            'totalPenarikanBulanIni',
+            'jumlahSiswa',
+            'dataBulanan',
+            'laporanSiswa'
+        ));
     }
 
     /**

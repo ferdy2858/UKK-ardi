@@ -1,12 +1,11 @@
 <x-app-layout>
     <x-slot name="header">
+        <!-- Header tetap -->
         <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
-            <!-- Kiri: Judul -->
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                 {{ __('Data Siswa') }}
             </h2>
 
-            <!-- Kanan: Search + Tombol -->
             <div class="flex items-center gap-2">
                 <form action="{{ route('siswa.index') }}" method="GET" class="flex">
                     <input type="text" id="searchInput" name="q" value="{{ request('q') }}" placeholder="Cari nama atau NIS..."
@@ -54,10 +53,10 @@
                                             Edit
                                         </a>
                                         <form action="{{ route('siswa.destroy', $siswa->id) }}" method="POST"
-                                            class="inline-block">
+                                            class="inline-block delete-form">
                                             @csrf
                                             @method('DELETE')
-                                            <button onclick="return confirm('Yakin ingin menghapus siswa ini?')"
+                                            <button type="submit"
                                                 class="px-3 py-1 text-sm bg-red-600 hover:bg-red-700 text-white rounded">
                                                 Hapus
                                             </button>
@@ -78,7 +77,12 @@
             </div>
         </div>
     </div>
+
+    <!-- SweetAlert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
+        // Search lokal
         document.getElementById('searchInput').addEventListener('input', function() {
             const searchValue = this.value.toLowerCase();
             const rows = document.querySelectorAll('tbody tr');
@@ -88,5 +92,48 @@
                 row.style.display = rowText.includes(searchValue) ? '' : 'none';
             });
         });
+
+        // SweetAlert konfirmasi hapus
+        document.querySelectorAll('.delete-form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Yakin?',
+                    text: "Data siswa ini akan dihapus permanen!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Ya, hapus!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+
+        // SweetAlert notifikasi sukses/gagal
+        @if(session('success'))
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: '{{ session("success") }}',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+        });
+    @endif
+
+        @if(session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                text: '{{ session("error") }}',
+                showConfirmButton: true
+            });
+        @endif
     </script>
 </x-app-layout>
