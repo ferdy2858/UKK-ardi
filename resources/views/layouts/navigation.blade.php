@@ -50,6 +50,9 @@
                     <x-nav-link :href="route('laporan.index')" :active="request()->routeIs('laporan.*')">
                         {{ __('Laporan') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('debug.index')" :active="request()->routeIs('debug.*')">
+                        {{ __('Debug') }}
+                    </x-nav-link>
                 </div>
             </div>
 

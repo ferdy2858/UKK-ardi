@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DebugController;
 use App\Http\Controllers\HistoriController;
 use App\Http\Controllers\LaporanController;
 use Illuminate\Support\Facades\Route;
@@ -21,7 +22,9 @@ Route::middleware('auth')->group(function () {
     Route::resource('transaksi', TranksaksiController::class);
     Route::resource('histori', HistoriController::class);
     Route::resource('laporan', LaporanController::class);
+    Route::resource('debug', DebugController::class);
 });
+
 
 
 require __DIR__ . '/auth.php';
