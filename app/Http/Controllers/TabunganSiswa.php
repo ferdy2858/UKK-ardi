@@ -2,18 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Siswa;
 use Illuminate\Http\Request;
-use Pest\Support\View;
+use Illuminate\Support\Facades\Auth;
 
-class DebugController extends Controller
+class TabunganSiswa extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return view('debugbolo.index');
+        $siswas = Siswa::with(['transaksis' => function ($q) {
+            $q->orderBy('tanggal', 'desc');
+        }])
+            ->where('user_id', auth()->id())
+            ->get();
+
+        return view('tabungan.index', compact('siswas'));
     }
+
 
     /**
      * Show the form for creating a new resource.
