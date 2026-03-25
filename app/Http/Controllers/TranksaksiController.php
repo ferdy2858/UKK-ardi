@@ -9,21 +9,44 @@ use Illuminate\Http\Request;
 class TranksaksiController extends Controller
 {
     public function index(Request $request)
-{
-    $search = $request->input('search');
+    {
+        $search = $request->search;
+        $jenis  = $request->jenis;
+        $dari   = $request->dari;
+        $sampai = $request->sampai;
 
-    $transaksis = Transaksi::with('siswa')
-        ->when($search, function ($query, $search) {
-            $query->whereHas('siswa', function ($q) use ($search) {
-                $q->where('nama', 'like', '%' . $search . '%');
-            });
-        })
-        ->latest()
-        ->paginate(10)
-        ->withQueryString();
+        $transaksis = Transaksi::query()
+            ->select('transaksis.*')
+            ->join('siswas', 'siswas.id', '=', 'transaksis.siswa_id')
 
-    return view('transaksi.index', compact('transaksis', 'search'));
-}
+            // 🔍 SEARCH NAMA / NIS
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('siswas.nama', 'like', "%$search%")
+                        ->orWhere('siswas.nis', 'like', "%$search%");
+                });
+            })
+
+            // 🏷️ FILTER JENIS
+            ->when($jenis, fn($q) => $q->where('transaksis.jenis', $jenis))
+
+            // 📅 FILTER TANGGAL
+            ->when($dari && $sampai, fn($q) => $q->whereBetween('transaksis.tanggal', [$dari, $sampai]))
+            ->when($dari && !$sampai, fn($q) => $q->whereDate('transaksis.tanggal', $dari))
+
+            ->with('siswa') // biar relasi tetap bisa dipakai di blade
+            ->latest('transaksis.created_at')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('transaksi.index', compact(
+            'transaksis',
+            'search',
+            'jenis',
+            'dari',
+            'sampai'
+        ));
+    }
 
     public function create()
     {
@@ -104,7 +127,7 @@ class TranksaksiController extends Controller
 
     //     return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil diperbarui.');
     // }
-    
+
     public function destroy($id)
     {
         $transaksi = Transaksi::findOrFail($id);
