@@ -33,7 +33,7 @@ class AuthenticatedSessionController extends Controller
         } elseif ($user->hasRole('petugas')) {
             return redirect()->route('dashboard');
         } elseif ($user->hasRole('siswa')) {
-            return redirect()->route('dashboard');
+            return redirect()->route('tabungan.index');
         }
 
         // fallback kalau tidak punya role
