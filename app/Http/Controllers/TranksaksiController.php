@@ -22,7 +22,7 @@ class TranksaksiController extends Controller
             // 🔍 SEARCH NAMA / NIS
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($sub) use ($search) {
-                    $sub->where('siswas.nama', 'like', "%$search%")
+                    $sub->where('siswas.nama', 'ilike', "%$search%")
                         ->orWhere('siswas.nis', 'like', "%$search%");
                 });
             })

@@ -5,105 +5,78 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Siswa;
 use App\Models\Transaksi;
-use Carbon\Carbon;
-use DB;
+use Illuminate\Support\Facades\DB;
 
 class LaporanController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request)
     {
+        $dari   = $request->dari;
+        $sampai = $request->sampai;
+
+        // 🔹 Base query transaksi biar filter konsisten
+        $baseTransaksi = Transaksi::query()
+            ->when($dari && $sampai, fn($q) => $q->whereBetween('tanggal', [$dari, $sampai]))
+            ->when($dari && !$sampai, fn($q) => $q->whereDate('tanggal', $dari));
+
+        // 🔹 Summary
         $totalSaldo = Siswa::sum('saldo');
-        $totalSetoranBulanIni = Transaksi::where('jenis', 'setoran')
-            ->whereMonth('tanggal', Carbon::now()->month)
+
+        $totalSetoran = (clone $baseTransaksi)
+            ->where('jenis', 'setoran')
             ->sum('nominal');
-        $totalPenarikanBulanIni = Transaksi::where('jenis', 'penarikan')
-            ->whereMonth('tanggal', Carbon::now()->month)
+
+        $totalPenarikan = (clone $baseTransaksi)
+            ->where('jenis', 'penarikan')
             ->sum('nominal');
+
         $jumlahSiswa = Siswa::count();
 
-        // Data grafik bulanan
-        $dataBulanan = Transaksi::select(
-            DB::raw('EXTRACT(MONTH FROM tanggal) as bulan'),
-            DB::raw("SUM(CASE WHEN jenis = 'setoran' THEN nominal ELSE 0 END) as total_setoran"),
-            DB::raw("SUM(CASE WHEN jenis = 'penarikan' THEN nominal ELSE 0 END) as total_penarikan")
-        )
+        // 🔹 Grafik Bulanan
+        $dataBulanan = (clone $baseTransaksi)
+            ->select(
+                DB::raw('EXTRACT(MONTH FROM tanggal) as bulan'),
+                DB::raw("SUM(CASE WHEN jenis='setoran' THEN nominal ELSE 0 END) as total_setoran"),
+                DB::raw("SUM(CASE WHEN jenis='penarikan' THEN nominal ELSE 0 END) as total_penarikan")
+            )
             ->groupBy('bulan')
             ->orderBy('bulan')
             ->get();
 
-        // Data tabel detail per siswa
+        // 🔹 Laporan per siswa (ikut filter tanggal)
+        $filterSQL = '';
+        if ($dari && $sampai) {
+            $filterSQL = "AND tanggal BETWEEN '$dari' AND '$sampai'";
+        } elseif ($dari) {
+            $filterSQL = "AND DATE(tanggal) = '$dari'";
+        }
+
         $laporanSiswa = Siswa::select(
             'nama',
-            DB::raw("(SELECT COALESCE(SUM(nominal),0) FROM transaksis WHERE siswa_id = siswas.id AND jenis='setoran') as total_setoran"),
-            DB::raw("(SELECT COALESCE(SUM(nominal),0) FROM transaksis WHERE siswa_id = siswas.id AND jenis='penarikan') as total_penarikan"),
+            DB::raw("(SELECT COALESCE(SUM(nominal),0) FROM transaksis 
+                      WHERE siswa_id = siswas.id AND jenis='setoran' $filterSQL) as total_setoran"),
+            DB::raw("(SELECT COALESCE(SUM(nominal),0) FROM transaksis 
+                      WHERE siswa_id = siswas.id AND jenis='penarikan' $filterSQL) as total_penarikan"),
             DB::raw("(
-            (SELECT COALESCE(SUM(nominal),0) FROM transaksis WHERE siswa_id = siswas.id AND jenis='setoran')
-            - 
-            (SELECT COALESCE(SUM(nominal),0) FROM transaksis WHERE siswa_id = siswas.id AND jenis='penarikan')
-        ) as saldo_akhir")
+                (SELECT COALESCE(SUM(nominal),0) FROM transaksis 
+                 WHERE siswa_id = siswas.id AND jenis='setoran' $filterSQL)
+                -
+                (SELECT COALESCE(SUM(nominal),0) FROM transaksis 
+                 WHERE siswa_id = siswas.id AND jenis='penarikan' $filterSQL)
+            ) as saldo_akhir")
         )
             ->orderByDesc('saldo_akhir')
             ->get();
 
-
         return view('laporan.index', compact(
             'totalSaldo',
-            'totalSetoranBulanIni',
-            'totalPenarikanBulanIni',
+            'totalSetoran',
+            'totalPenarikan',
             'jumlahSiswa',
             'dataBulanan',
-            'laporanSiswa'
+            'laporanSiswa',
+            'dari',
+            'sampai'
         ));
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
     }
 }
