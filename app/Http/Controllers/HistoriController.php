@@ -16,7 +16,7 @@ class HistoriController extends Controller
         $query = Siswa::query();
 
         if ($request->has('q') && $request->q != '') {
-            $query->where('nama', 'ilike', '%' . $request->q . '%')
+            $query->where('nama', 'like', '%' . $request->q . '%')
                 ->orWhere('nis', 'like', '%' . $request->q . '%');
         }
 
